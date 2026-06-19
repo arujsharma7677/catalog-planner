@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@theme {
+  --color-myntra-pink: #ff3f6c;
+  --color-myntra-dark: #282c3f;
+  --color-myntra-gray: #696e79;
+  --color-myntra-light: #f5f5f6;
+  --color-myntra-border: #eaeaec;
+}
+
+@layer base {
+  body {
+    @apply bg-white text-myntra-dark antialiased;
+  }
+}
+
+@layer components {
+  .card {
+    @apply rounded-xl border border-myntra-border bg-white p-6 shadow-sm;
+  }
+  .btn-primary {
+    @apply rounded-lg bg-myntra-pink px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-pink-600;
+  }
+  .btn-secondary {
+    @apply rounded-lg border border-myntra-border px-4 py-2 text-sm font-semibold text-myntra-dark transition-colors hover:bg-myntra-light;
+  }
+  .input-field {
+    @apply w-full px-3 py-2 border border-myntra-border rounded-lg text-sm focus:outline-none focus:border-myntra-pink;
+  }
+}
