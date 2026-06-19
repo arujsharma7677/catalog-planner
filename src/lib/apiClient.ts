@@ -1,4 +1,4 @@
-const BACKEND_URL = 'https://product-analyzer-2.onrender.com/';
+const BACKEND_URL = 'https://product-analyzer-2.onrender.com';
 
 export async function apiClient(path: string, options: RequestInit = {}): Promise<Response> {
   const response = await fetch(`${BACKEND_URL}${path}`, options);
