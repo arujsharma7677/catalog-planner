@@ -16,6 +16,7 @@ import { AutoFillForm } from '@/components/AutoFillForm';
 import { downloadMyntraExcel } from '@/lib/excel-export';
 import { useAuth } from '@/lib/auth-context';
 import { analyseProduct } from '@/services/analyzeService';
+import { compressFile } from '@/lib/image-compress';
 
 const SELLER_PROFILE_KEY = 'myntra_seller_profile';
 const IMAGE_SLOTS: (keyof ImageSet)[] = ['front', 'back', 'side', 'detail', 'lookshot'];
@@ -52,14 +53,16 @@ export default function AutoFillPage() {
 
   // Distribute multiple selected files across the image slots, starting from
   // `startSlot` and spilling into the following empty slots in order.
-  const handleFilesChange = (startSlot: keyof ImageSet, files: File[]) => {
+  const handleFilesChange = async (startSlot: keyof ImageSet, files: File[]) => {
     if (files.length === 0) return;
     const startIdx = IMAGE_SLOTS.indexOf(startSlot);
     const targets = IMAGE_SLOTS.slice(startIdx).slice(0, files.length);
 
+    const compressed = await Promise.all(files.map(f => compressFile(f)));
+
     setImages(prev => {
       const next = { ...prev };
-      targets.forEach((slot, i) => { next[slot] = files[i]; });
+      targets.forEach((slot, i) => { next[slot] = compressed[i]; });
       return next;
     });
     setImagePreviews(prev => {
@@ -67,16 +70,17 @@ export default function AutoFillPage() {
       targets.forEach((slot, i) => {
         const oldUrl = next[slot];
         if (oldUrl) URL.revokeObjectURL(oldUrl);
-        next[slot] = URL.createObjectURL(files[i]);
+        next[slot] = URL.createObjectURL(compressed[i]);
       });
       return next;
     });
   };
 
-  const handleFileChange = (slot: keyof ImageSet, file: File | null) => {
-    setImages(prev => ({ ...prev, [slot]: file }));
-    if (file) {
-      const url = URL.createObjectURL(file);
+  const handleFileChange = async (slot: keyof ImageSet, file: File | null) => {
+    const compressed = file ? await compressFile(file) : null;
+    setImages(prev => ({ ...prev, [slot]: compressed }));
+    if (compressed) {
+      const url = URL.createObjectURL(compressed);
       setImagePreviews(prev => ({ ...prev, [slot]: url }));
     } else {
       const oldUrl = imagePreviews[slot];
