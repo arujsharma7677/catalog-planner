@@ -34,6 +34,7 @@ export default function AutoFillPage() {
   });
   const [imagePreviews, setImagePreviews] = useState<Record<string, string>>({});
   const [analyzing, setAnalyzing] = useState(false);
+  const [additionalRequirements, setAdditionalRequirements] = useState('');
   const [batch, setBatch] = useState<BatchItem[]>([]);
   const [currentItem, setCurrentItem] = useState<BatchItem | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -110,7 +111,7 @@ export default function AutoFillPage() {
       const imageFiles = Object.values(images).filter((f) => f !== null) as File[];
      
 
-      const response = await analyseProduct('Item', imageFiles);
+      const response = await analyseProduct('Item', imageFiles, additionalRequirements);
 
       // Convert flat response to RawAnalysis shape
       const rawAnalysis: RawAnalysis = Object.fromEntries(
@@ -131,6 +132,7 @@ export default function AutoFillPage() {
       };
 
       setCurrentItem(newItem);
+      setAdditionalRequirements('');
       await refreshCredits();
     } catch (err: any) {
       if (err.message?.includes('402') || err.message?.includes('Insufficient credits')) {
@@ -190,6 +192,19 @@ export default function AutoFillPage() {
                 />
               ))}
             </div>
+          </section>
+
+          <section className="space-y-2">
+            <h2 className="text-sm font-semibold text-myntra-dark uppercase tracking-wider">
+              Additional Requirements <span className="text-myntra-gray font-normal normal-case">(optional)</span>
+            </h2>
+            <textarea
+              value={additionalRequirements}
+              onChange={(e) => setAdditionalRequirements(e.target.value)}
+              placeholder="Anything specific the AI should account for in this analysis — e.g. fabric is linen, focus on the embroidery, mention the relaxed fit..."
+              rows={3}
+              className="input-field min-h-17.5"
+            />
           </section>
 
           <div className="flex justify-center">

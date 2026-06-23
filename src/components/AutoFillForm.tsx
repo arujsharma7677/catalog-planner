@@ -40,6 +40,18 @@ export function AutoFillForm({ item, onUpdate, onAddToBatch }: Props) {
     onUpdate({ ...formData, [field]: value });
   };
 
+  // vendorArticleNumber / vendorSkuCode / skuCode are all derived from
+  // initials-styleGroupId-colour(-size), so any change to those inputs must
+  // recompute them rather than leave the old codes in place.
+  const recomputeCodes = (next: SKUFormData): SKUFormData => {
+    const initials = getInitials(next.brand);
+    const colourUpper = next.prominentColour.toUpperCase();
+    const groupId = next.styleGroupId;
+    const vendorArticleNumber = `${initials}-${groupId}-${colourUpper}`;
+    const codes = next.brandSize.map((s) => `${initials}-${groupId}-${colourUpper}-${s}`).join(', ');
+    return { ...next, vendorArticleNumber, vendorSkuCode: codes, skuCode: codes };
+  };
+
   const getConf = (field: string): ConfidenceLevel =>
     formData.fieldConfidence[field] || '62046200';
 
@@ -220,7 +232,7 @@ export function AutoFillForm({ item, onUpdate, onAddToBatch }: Props) {
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <Field label="Style ID" value={formData.styleId} confidence={'none'} reasoning="Seller-specific identifier, cannot be determined from images." showReasoning={showAllReasoning} onChange={(v) => updateField('styleId', v)} />
-          <Field label="Style Group ID" value={formData.styleGroupId} confidence={getConf('styleGroupId')} reasoning="Auto-generated random number (2999-9999)." showReasoning={showAllReasoning} onChange={(v) => updateField('styleGroupId', v)} />
+          <Field label="Style Group ID" value={formData.styleGroupId} confidence={getConf('styleGroupId')} reasoning="Auto-generated random number (2999-9999). Changing this regenerates the vendor SKU and SKU codes." showReasoning={showAllReasoning} onChange={(v) => onUpdate(recomputeCodes({ ...formData, styleGroupId: v }))} />
           <Field label="Vendor Article Number" value={formData.vendorArticleNumber} confidence={getConf('vendorArticleNumber')} reasoning="Auto-generated: Initials-StyleGroupId-ProminentColour." showReasoning={showAllReasoning} onChange={(v) => updateField('vendorArticleNumber', v)} />
           <Field label="GTIN" value={formData.gtin} confidence={'none'} reasoning="Global Trade Item Number (barcode), must be entered manually." showReasoning={showAllReasoning} onChange={(v) => updateField('gtin', v)} />
           <Field label="MRP (₹)" value={formData.mrp} confidence={'none'} reasoning="Pricing is a business decision, cannot be inferred from images." showReasoning={showAllReasoning} onChange={(v) => updateField('mrp', v)} />
@@ -232,21 +244,7 @@ export function AutoFillForm({ item, onUpdate, onAddToBatch }: Props) {
             confidence={getConf('brandSize')}
             reasoning="Pre-filled with S, M, L, XL, XXL. Add or remove sizes as needed."
             showReasoning={showAllReasoning}
-            onChange={(sizes) => {
-              // Recompute derived fields when sizes change
-              const initials = getInitials(formData.brand);
-              const colourUpper = formData.prominentColour.toUpperCase();
-              const groupId = formData.styleGroupId;
-              const newVendorArticleNumber = `${initials}-${groupId}-${colourUpper}`;
-              const newVendorSkuCodes = sizes.map((s) => `${initials}-${groupId}-${colourUpper}-${s}`).join(', ');
-              onUpdate({
-                ...formData,
-                brandSize: sizes,
-                vendorArticleNumber: newVendorArticleNumber,
-                vendorSkuCode: newVendorSkuCodes,
-                skuCode: newVendorSkuCodes,
-              });
-            }}
+            onChange={(sizes) => onUpdate(recomputeCodes({ ...formData, brandSize: sizes }))}
           />
         </div>
         <div className="mt-3 space-y-3">

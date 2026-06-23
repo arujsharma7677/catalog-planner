@@ -14,12 +14,23 @@ export interface AnalysisResponse {
   timestamp: string;
 }
 
-export async function analyseProduct(productName: string, imageFiles: File[]): Promise<AnalysisResponse> {
+export async function analyseProduct(
+  productName: string,
+  imageFiles: File[],
+  additionalRequirements?: string,
+): Promise<AnalysisResponse> {
   const formData = new FormData();
   formData.append('product_name', productName);
 
   for (let i = 0; i < Math.min(imageFiles.length, 5); i++) {
     formData.append('images', imageFiles[i]);
+  }
+
+  // Optional free-text instructions the seller wants the AI to honour during
+  // this specific analysis (e.g. "focus on the embroidery", "fabric is linen").
+  const requirements = additionalRequirements?.trim();
+  if (requirements) {
+    formData.append('additional_requirements', requirements);
   }
 
   const response = await apiClient('/api/analyse', {
