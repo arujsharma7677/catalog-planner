@@ -143,6 +143,7 @@ const IMAGE_COLUMNS: { header: string; key: keyof SKUFormData }[] = [
   { header: 'Look Shot Image', key: 'lookShotImage' },
   { header: 'Additional Image 1', key: 'additionalImage1' },
   { header: 'Additional Image 2', key: 'additionalImage2' },
+  { header: 'Additional Image 3', key: 'additionalImage3' },
 ];
 
 const IMG_SIZE_PX = 80;

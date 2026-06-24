@@ -71,7 +71,7 @@ export function AutoFillForm({ item, onUpdate, onAddToBatch }: Props) {
     if (Array.isArray(v)) return v.length === 0;
     return typeof v !== 'string' || v.trim() === '';
   };
-  const REQUIRED_FIELDS: (keyof SKUFormData)[] = ['styleId', 'gtin', 'mrp', 'brandSize'];
+  const REQUIRED_FIELDS: (keyof SKUFormData)[] = ['styleId', 'mrp', 'brandSize'];
   const missingRequiredCount = REQUIRED_FIELDS.filter(isFieldEmpty).length;
   const canSubmit = missingRequiredCount === 0;
 
@@ -234,7 +234,7 @@ export function AutoFillForm({ item, onUpdate, onAddToBatch }: Props) {
           <Field label="Style ID" value={formData.styleId} confidence={'none'} reasoning="Seller-specific identifier, cannot be determined from images." showReasoning={showAllReasoning} onChange={(v) => updateField('styleId', v)} />
           <Field label="Style Group ID" value={formData.styleGroupId} confidence={getConf('styleGroupId')} reasoning="Auto-generated random number (2999-9999). Changing this regenerates the vendor SKU and SKU codes." showReasoning={showAllReasoning} onChange={(v) => onUpdate(recomputeCodes({ ...formData, styleGroupId: v }))} />
           <Field label="Vendor Article Number" value={formData.vendorArticleNumber} confidence={getConf('vendorArticleNumber')} reasoning="Auto-generated: Initials-StyleGroupId-ProminentColour." showReasoning={showAllReasoning} onChange={(v) => updateField('vendorArticleNumber', v)} />
-          <Field label="GTIN" value={formData.gtin} confidence={'none'} reasoning="Global Trade Item Number (barcode), must be entered manually." showReasoning={showAllReasoning} onChange={(v) => updateField('gtin', v)} />
+          <Field label="GTIN (optional)" value={formData.gtin} confidence={'none'} reasoning="Global Trade Item Number (barcode), entered manually. Optional." showReasoning={showAllReasoning} onChange={(v) => updateField('gtin', v)} />
           <Field label="MRP (₹)" value={formData.mrp} confidence={'none'} reasoning="Pricing is a business decision, cannot be inferred from images." showReasoning={showAllReasoning} onChange={(v) => updateField('mrp', v)} />
         </div>
         <div className="mt-4">
@@ -283,6 +283,7 @@ export function AutoFillForm({ item, onUpdate, onAddToBatch }: Props) {
           <Field label="Look Shot Image" value={formData.lookShotImage} confidence={getConf('lookShotImage')} reasoning="" showReasoning={false} onChange={(v) => updateField('lookShotImage', v)} />
           <Field label="Additional Image 1" value={formData.additionalImage1} confidence={'none'} reasoning="" showReasoning={false} onChange={(v) => updateField('additionalImage1', v)} />
           <Field label="Additional Image 2" value={formData.additionalImage2} confidence={'none'} reasoning="" showReasoning={false} onChange={(v) => updateField('additionalImage2', v)} />
+          <Field label="Additional Image 3" value={formData.additionalImage3} confidence={'none'} reasoning="" showReasoning={false} onChange={(v) => updateField('additionalImage3', v)} />
         </div>
       </FormSection>
     </div>

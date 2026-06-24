@@ -55,5 +55,5 @@ export const CSV_HEADERS = [
   'Outseam Length ( Inches )', 'Rise ( Inches )', 'Sleeve-Length ( Inches )',
   'To Fit Bust ( Inches )', 'To Fit Chest ( Inches )', 'To Fit Hip ( Inches )',
   'Front Image', 'Side Image', 'Back Image', 'Detail Angle', 'Look Shot Image',
-  'Additional Image 1', 'Additional Image 2',
+  'Additional Image 1', 'Additional Image 2', 'Additional Image 3',
 ] as const;

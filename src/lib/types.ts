@@ -276,6 +276,7 @@ export interface SKUFormData {
   lookShotImage: string;
   additionalImage1: string;
   additionalImage2: string;
+  additionalImage3: string;
 
   // Metadata
   fieldConfidence: Record<string, ConfidenceLevel>;

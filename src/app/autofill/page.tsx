@@ -19,20 +19,41 @@ import { analyseProduct } from '@/services/analyzeService';
 import { compressFile } from '@/lib/image-compress';
 
 const SELLER_PROFILE_KEY = 'myntra_seller_profile';
-const IMAGE_SLOTS: (keyof ImageSet)[] = ['front', 'back', 'side', 'detail', 'lookshot'];
+// The five named angles are always shown. Up to three further "additional"
+// slots can be revealed on demand, for a maximum of eight images per product.
+const BASE_SLOTS: (keyof ImageSet)[] = ['front', 'back', 'side', 'detail', 'lookshot'];
+const ADDITIONAL_SLOTS: (keyof ImageSet)[] = ['additional1', 'additional2', 'additional3'];
+const ALL_SLOTS: (keyof ImageSet)[] = [...BASE_SLOTS, ...ADDITIONAL_SLOTS];
+const SLOT_LABELS: Record<keyof ImageSet, string> = {
+  front: 'Front',
+  back: 'Back',
+  side: 'Side',
+  detail: 'Detail',
+  lookshot: 'Look Shot',
+  additional1: 'Additional 1',
+  additional2: 'Additional 2',
+  additional3: 'Additional 3',
+};
+
+const EMPTY_IMAGES: ImageSet = {
+  front: null,
+  back: null,
+  side: null,
+  detail: null,
+  lookshot: null,
+  additional1: null,
+  additional2: null,
+  additional3: null,
+};
 
 export default function AutoFillPage() {
   const { refreshCredits } = useAuth();
   const [profile, setProfile] = useState<SellerProfile | null>(null);
  
-  const [images, setImages] = useState<ImageSet>({
-    front: null,
-    back: null,
-    side: null,
-    detail: null,
-    lookshot: null,
-  });
+  const [images, setImages] = useState<ImageSet>(EMPTY_IMAGES);
   const [imagePreviews, setImagePreviews] = useState<Record<string, string>>({});
+  // How many of the optional additional slots are currently revealed (0–3).
+  const [extraSlots, setExtraSlots] = useState(0);
   const [analyzing, setAnalyzing] = useState(false);
   const [additionalRequirements, setAdditionalRequirements] = useState('');
   const [batch, setBatch] = useState<BatchItem[]>([]);
@@ -56,8 +77,13 @@ export default function AutoFillPage() {
   // `startSlot` and spilling into the following empty slots in order.
   const handleFilesChange = async (startSlot: keyof ImageSet, files: File[]) => {
     if (files.length === 0) return;
-    const startIdx = IMAGE_SLOTS.indexOf(startSlot);
-    const targets = IMAGE_SLOTS.slice(startIdx).slice(0, files.length);
+    const startIdx = ALL_SLOTS.indexOf(startSlot);
+    const targets = ALL_SLOTS.slice(startIdx).slice(0, files.length);
+
+    // Reveal any additional slots that the files spilled into.
+    const lastIdx = ALL_SLOTS.indexOf(targets[targets.length - 1]);
+    const neededExtra = Math.max(0, lastIdx - BASE_SLOTS.length + 1);
+    if (neededExtra > extraSlots) setExtraSlots(neededExtra);
 
     const compressed = await Promise.all(files.map(f => compressFile(f)));
 
@@ -155,8 +181,9 @@ export default function AutoFillPage() {
     if (currentItem) {
       setBatch(prev => [currentItem, ...prev]);
       setCurrentItem(null);
-      setImages({ front: null, back: null, side: null, detail: null, lookshot: null });
+      setImages(EMPTY_IMAGES);
       setImagePreviews({});
+      setExtraSlots(0);
     }
   };
 
@@ -179,18 +206,25 @@ export default function AutoFillPage() {
          
 
           <section className="space-y-4">
-            <h2 className="text-sm font-semibold text-myntra-dark uppercase tracking-wider">Product Angles</h2>
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-semibold text-myntra-dark uppercase tracking-wider">Product Angles</h2>
+              <span className="text-[11px] text-myntra-gray">{BASE_SLOTS.length + extraSlots} / {ALL_SLOTS.length} images</span>
+            </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4">
-              {IMAGE_SLOTS.map((slot) => (
+              {[...BASE_SLOTS, ...ADDITIONAL_SLOTS.slice(0, extraSlots)].map((slot) => (
                 <ImageSlot
                   key={slot}
                   slot={slot}
+                  label={SLOT_LABELS[slot]}
                   file={images[slot]}
                   preview={imagePreviews[slot]}
                   onChange={(files) => handleFilesChange(slot, files)}
                   onRemove={() => handleFileChange(slot, null)}
                 />
               ))}
+              {extraSlots < ADDITIONAL_SLOTS.length && (
+                <AddImageTile onClick={() => setExtraSlots((n) => n + 1)} />
+              )}
             </div>
           </section>
 
@@ -295,9 +329,10 @@ export default function AutoFillPage() {
 
 // ── Sub-components ──
 
-function ImageSlot({ slot, file, preview, onChange, onRemove }: {
-  slot: string; file: File | null; preview?: string; onChange: (files: File[]) => void; onRemove: () => void;
+function ImageSlot({ slot, label, file, preview, onChange, onRemove }: {
+  slot: string; label?: string; file: File | null; preview?: string; onChange: (files: File[]) => void; onRemove: () => void;
 }) {
+  const displayLabel = label ?? slot;
   return (
     <div className={`relative group rounded-xl border-2 border-dashed aspect-[3/4] transition-all overflow-hidden flex flex-col items-center justify-center text-center p-2
       ${preview ? 'border-none ring-1 ring-myntra-border' : 'border-myntra-border hover:border-myntra-pink hover:bg-pink-50'}`}>
@@ -314,13 +349,13 @@ function ImageSlot({ slot, file, preview, onChange, onRemove }: {
             </svg>
           </button>
           <div className="absolute bottom-0 left-0 right-0 bg-black/40 backdrop-blur-sm py-1 px-2">
-            <span className="text-[10px] font-bold text-white uppercase tracking-wider">{slot}</span>
+            <span className="text-[10px] font-bold text-white uppercase tracking-wider">{displayLabel}</span>
           </div>
         </>
       ) : (
         <div className="relative cursor-pointer">
           <span className="text-2xl mb-1 block">📸</span>
-          <span className="text-[10px] font-bold text-myntra-gray uppercase tracking-widest">{slot}</span>
+          <span className="text-[10px] font-bold text-myntra-gray uppercase tracking-widest">{displayLabel}</span>
           <input
             type="file"
             accept="image/*"
@@ -331,6 +366,20 @@ function ImageSlot({ slot, file, preview, onChange, onRemove }: {
         </div>
       )}
     </div>
+  );
+}
+
+// Placeholder tile that reveals one more optional image slot when clicked.
+function AddImageTile({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="group rounded-xl border-2 border-dashed border-myntra-border aspect-[3/4] flex flex-col items-center justify-center text-center p-2 transition-all hover:border-myntra-pink hover:bg-pink-50"
+    >
+      <span className="text-2xl mb-1 block text-myntra-gray group-hover:text-myntra-pink transition-colors">＋</span>
+      <span className="text-[10px] font-bold text-myntra-gray uppercase tracking-widest group-hover:text-myntra-pink transition-colors">Add Image</span>
+    </button>
   );
 }
 

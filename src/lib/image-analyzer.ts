@@ -19,6 +19,9 @@ export interface ImageSet {
   side: File | null;
   detail: File | null;
   lookshot: File | null;
+  additional1: File | null;
+  additional2: File | null;
+  additional3: File | null;
 }
 
 type ImageMediaType = 'image/jpeg' | 'image/png' | 'image/gif' | 'image/webp';
@@ -29,6 +32,9 @@ const SLOT_LABELS: Record<string, string> = {
   side: 'Side view',
   detail: 'Detail/close-up angle',
   lookshot: 'Look shot / lifestyle image',
+  additional1: 'Additional view 1',
+  additional2: 'Additional view 2',
+  additional3: 'Additional view 3',
 };
 
 async function fileToBase64(file: File): Promise<string> {
@@ -60,6 +66,9 @@ export async function callClaudeAnalyze(
     { key: 'side', label: 'side view' },
     { key: 'detail', label: 'detail/close-up view' },
     { key: 'lookshot', label: 'look shot / styled shot' },
+    { key: 'additional1', label: 'additional view' },
+    { key: 'additional2', label: 'additional view' },
+    { key: 'additional3', label: 'additional view' },
   ];
 
   for (const { key, label } of slots) {
@@ -428,8 +437,9 @@ export function buildSKUFormData(
     backImage: imagePreviews.back || '',
     detailAngle: imagePreviews.detail || '',
     lookShotImage: imagePreviews.lookshot || '',
-    additionalImage1: '',
-    additionalImage2: '',
+    additionalImage1: imagePreviews.additional1 || '',
+    additionalImage2: imagePreviews.additional2 || '',
+    additionalImage3: imagePreviews.additional3 || '',
     fieldConfidence: {
       ...fieldConfidence,
       frontImage: imagePreviews.front ? 'high' : 'none',
@@ -437,6 +447,9 @@ export function buildSKUFormData(
       backImage: imagePreviews.back ? 'high' : 'none',
       detailAngle: imagePreviews.detail ? 'high' : 'none',
       lookShotImage: imagePreviews.lookshot ? 'high' : 'none',
+      additionalImage1: imagePreviews.additional1 ? 'high' : 'none',
+      additionalImage2: imagePreviews.additional2 ? 'high' : 'none',
+      additionalImage3: imagePreviews.additional3 ? 'high' : 'none',
       sleeveStyling: conf('sleeveStyling'),
       addOns: conf('addOns'),
       character: conf('character'),
