@@ -59,7 +59,7 @@ export default function AutoFillPage() {
   const [batch, setBatch] = useState<BatchItem[]>([]);
   const [currentItem, setCurrentItem] = useState<BatchItem | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [batchCollapsed, setBatchCollapsed] = useState(false);
+  const [batchCollapsed, setBatchCollapsed] = useState(true);
 
   // Load persistence
   useEffect(() => {
@@ -378,7 +378,7 @@ function AddImageTile({ onClick }: { onClick: () => void }) {
       className="group rounded-xl border-2 border-dashed border-myntra-border aspect-[3/4] flex flex-col items-center justify-center text-center p-2 transition-all hover:border-myntra-pink hover:bg-pink-50"
     >
       <span className="text-2xl mb-1 block text-myntra-gray group-hover:text-myntra-pink transition-colors">＋</span>
-      <span className="text-[10px] font-bold text-myntra-gray uppercase tracking-widest group-hover:text-myntra-pink transition-colors">Add Image</span>
+      <span className="text-[10px] font-bold text-myntra-gray uppercase tracking-widest group-hover:text-myntra-pink transition-colors">Add Slot For Image</span>
     </button>
   );
 }
