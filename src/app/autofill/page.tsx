@@ -35,6 +35,15 @@ const SLOT_LABELS: Record<keyof ImageSet, string> = {
   additional3: 'Additional 3',
 };
 
+// Marketplaces the analysis can target. `value` must match the backend's
+// accepted platform identifiers (lowercase).
+const PLATFORM_OPTIONS: { value: string; label: string }[] = [
+  { value: 'myntra', label: 'Myntra' },
+  // { value: 'amazon', label: 'Amazon' },
+  // { value: 'flipkart', label: 'Flipkart' },
+  // { value: 'ajio', label: 'Ajio' },
+];
+
 const EMPTY_IMAGES: ImageSet = {
   front: null,
   back: null,
@@ -55,6 +64,7 @@ export default function AutoFillPage() {
   // How many of the optional additional slots are currently revealed (0–3).
   const [extraSlots, setExtraSlots] = useState(0);
   const [analyzing, setAnalyzing] = useState(false);
+  const [platforms, setPlatforms] = useState<string[]>(['myntra']);
   const [additionalRequirements, setAdditionalRequirements] = useState('');
   const [batch, setBatch] = useState<BatchItem[]>([]);
   const [currentItem, setCurrentItem] = useState<BatchItem | null>(null);
@@ -129,6 +139,10 @@ export default function AutoFillPage() {
       setError('At least a front image is required.');
       return;
     }
+    if (platforms.length === 0) {
+      setError('Please select at least one marketplace.');
+      return;
+    }
 
     setAnalyzing(true);
     setError(null);
@@ -137,7 +151,7 @@ export default function AutoFillPage() {
       const imageFiles = Object.values(images).filter((f) => f !== null) as File[];
      
 
-      const response = await analyseProduct('Item', imageFiles, additionalRequirements);
+      const response = await analyseProduct('Item', imageFiles, platforms, additionalRequirements);
 
       // Convert flat response to RawAnalysis shape
       const rawAnalysis: RawAnalysis = Object.fromEntries(
@@ -204,6 +218,33 @@ export default function AutoFillPage() {
           )}
 
          
+
+          <section className="space-y-2">
+            <h2 className="text-sm font-semibold text-myntra-dark uppercase tracking-wider">Marketplaces</h2>
+            <div className="flex flex-wrap gap-2">
+              {PLATFORM_OPTIONS.map(({ value, label }) => {
+                const selected = platforms.includes(value);
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    onClick={() =>
+                      setPlatforms((prev) =>
+                        prev.includes(value) ? prev.filter((p) => p !== value) : [...prev, value]
+                      )
+                    }
+                    className={`px-4 py-2 rounded-full text-sm font-medium border transition-colors ${
+                      selected
+                        ? 'bg-myntra-pink text-white border-myntra-pink'
+                        : 'bg-white text-myntra-gray border-myntra-border hover:border-myntra-pink'
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
+          </section>
 
           <section className="space-y-4">
             <div className="flex items-center justify-between">

@@ -132,46 +132,9 @@ function expandToMyntraRows(d: SKUFormData): Record<string, string>[] {
 }
 
 /**
- * Maps each image column header to its SKUFormData source field. The values are
- * blob:/data:/http URLs that get fetched and embedded as real pictures.
- */
-const IMAGE_COLUMNS: { header: string; key: keyof SKUFormData }[] = [
-  { header: 'Front Image', key: 'frontImage' },
-  { header: 'Side Image', key: 'sideImage' },
-  { header: 'Back Image', key: 'backImage' },
-  { header: 'Detail Angle', key: 'detailAngle' },
-  { header: 'Look Shot Image', key: 'lookShotImage' },
-  { header: 'Additional Image 1', key: 'additionalImage1' },
-  { header: 'Additional Image 2', key: 'additionalImage2' },
-  { header: 'Additional Image 3', key: 'additionalImage3' },
-];
-
-const IMG_SIZE_PX = 80;
-
-type ImageExtension = 'png' | 'jpeg' | 'gif';
-
-/**
- * Fetches an image URL (blob:, data:, or http) and returns its bytes plus the
- * extension ExcelJS expects. Returns null if the image can't be loaded.
- */
-async function fetchImageBuffer(url: string): Promise<{ buffer: ArrayBuffer; extension: ImageExtension } | null> {
-  try {
-    const resp = await fetch(url);
-    if (!resp.ok) return null;
-    const blob = await resp.blob();
-    const buffer = await blob.arrayBuffer();
-    const type = blob.type.toLowerCase();
-    const extension: ImageExtension = type.includes('png') ? 'png' : type.includes('gif') ? 'gif' : 'jpeg';
-    return { buffer, extension };
-  } catch {
-    return null;
-  }
-}
-
-/**
  * Export one or more SKUFormData entries as a Myntra-template-compatible .xlsx file.
- * Each item is expanded into multiple rows — one per selected brand size — and the
- * product images are embedded directly into the image columns as pictures.
+ * Each item is expanded into multiple rows — one per selected brand size. Image
+ * columns are intentionally left empty (no URLs, no embedded pictures).
  */
 export async function downloadMyntraExcel(items: SKUFormData[], fileName?: string) {
   const wb = new ExcelJS.Workbook();
@@ -181,45 +144,15 @@ export async function downloadMyntraExcel(items: SKUFormData[], fileName?: strin
   ws.addRow([...CSV_HEADERS]);
   ws.columns = CSV_HEADERS.map((h) => ({ width: Math.max(h.length + 2, 15) }));
 
-  // Add data rows, remembering which source SKU each Excel row came from so we
-  // can embed that SKU's images afterwards.
-  const rowToSku: { excelRow: number; sku: SKUFormData }[] = [];
+  // Add data rows.
+  let rowCount = 0;
   for (const item of items) {
     for (const row of expandToMyntraRows(item)) {
-      const added = ws.addRow(CSV_HEADERS.map((h) => row[h] ?? ''));
-      rowToSku.push({ excelRow: added.number, sku: item });
+      ws.addRow(CSV_HEADERS.map((h) => row[h] ?? ''));
+      rowCount++;
     }
   }
-  if (rowToSku.length === 0) return;
-
-  // Embed each image into its column for every row. Identical SKUs (different
-  // sizes) repeat the same pictures so every row is self-contained.
-  for (const { excelRow, sku } of rowToSku) {
-    let rowHasImage = false;
-    for (const { header, key } of IMAGE_COLUMNS) {
-      const url = sku[key] as string;
-      if (!url) continue;
-      const colIndex = CSV_HEADERS.indexOf(header as (typeof CSV_HEADERS)[number]);
-      if (colIndex === -1) continue;
-
-      const img = await fetchImageBuffer(url);
-      if (!img) {
-        // Fall back to writing the URL as text if the image can't be loaded.
-        ws.getRow(excelRow).getCell(colIndex + 1).value = url;
-        continue;
-      }
-
-      const imageId = wb.addImage({ buffer: img.buffer, extension: img.extension });
-      ws.addImage(imageId, {
-        tl: { col: colIndex, row: excelRow - 1 },
-        ext: { width: IMG_SIZE_PX, height: IMG_SIZE_PX },
-        editAs: 'oneCell',
-      });
-      ws.getColumn(colIndex + 1).width = IMG_SIZE_PX / 7;
-      rowHasImage = true;
-    }
-    if (rowHasImage) ws.getRow(excelRow).height = IMG_SIZE_PX * 0.75;
-  }
+  if (rowCount === 0) return;
 
   // Trigger a browser download.
   const buf = await wb.xlsx.writeBuffer();

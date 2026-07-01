@@ -17,10 +17,17 @@ export interface AnalysisResponse {
 export async function analyseProduct(
   productName: string,
   imageFiles: File[],
+  platforms: string[],
   additionalRequirements?: string,
 ): Promise<AnalysisResponse> {
   const formData = new FormData();
   formData.append('product_name', productName);
+
+  // Backend requires `platforms` as a repeated form field (a list). Values must
+  // match the backend's accepted platform identifiers, e.g. 'myntra'.
+  for (const platform of platforms) {
+    formData.append('platforms', platform);
+  }
 
   for (let i = 0; i < Math.min(imageFiles.length, 5); i++) {
     formData.append('images', imageFiles[i]);
