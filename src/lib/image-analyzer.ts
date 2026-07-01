@@ -1,4 +1,4 @@
-import type { SKUFormData, ConfidenceLevel, SellerProfile } from './types';
+import type { SKUFormData, ConfidenceLevel, SellerProfile, AjioFields } from './types';
 import { validateColor, validateAgeGroup, validateFashionType, validateUsage, validateSeason } from './masterdata-validator';
 import { getHSNForArticleType } from './seller-profile';
 import { buildVisionPrompt } from './vision-prompt';
@@ -255,6 +255,7 @@ export function buildSKUFormData(
   analysis: RawAnalysis,
   profile: SellerProfile,
   imagePreviews: Record<string, string>,
+  ajioRaw?: Record<string, string>,
 ): SKUFormData {
   const get = (key: string): string => analysis[key]?.value || '';
   const conf = (key: string): ConfidenceLevel => analysis[key]?.confidence || 'none';
@@ -273,7 +274,7 @@ export function buildSKUFormData(
   const vendorArticleName = `${brand} ${articleType} - ${prominentColour}`.trim();
   const today = new Date().toISOString().split('T')[0];
   const hsn = getHSNForArticleType(profile, articleType);
-  const colorVariantGroupId = `CVG_${Date.now().toString(36)}`;
+  const colorVariantGroupId = "";
 
   // Auto-generate styleGroupId (random 2999-9999)
   const styleGroupId = String(Math.floor(Math.random() * (9999 - 2999 + 1)) + 2999);
@@ -345,7 +346,45 @@ export function buildSKUFormData(
     bottomHemline: conf('bottomHemline'),
   };
 
+  // Ajio image-derived attributes. The backend nests these under an "ajio" key
+  // in the /analyse response (plain-string values, keys matching AjioFields)
+  // when the "ajio" platform is selected. They're passed in separately because
+  // 5 of the keys (washCare, sleeveLength, lining, character, packageContains)
+  // collide with Myntra's flat keys and must NOT be merged into `analysis`.
+  const ajio: AjioFields | undefined = ajioRaw
+    ? {
+        colorFamily: ajioRaw.colorFamily ?? '',
+        colorShade: ajioRaw.colorShade ?? '',
+        secondaryColor: ajioRaw.secondaryColor ?? '',
+        fabricType: ajioRaw.fabricType ?? '',
+        bottomwearFabric: ajioRaw.bottomwearFabric ?? '',
+        fabricDetail: ajioRaw.fabricDetail ?? '',
+        pattern: ajioRaw.pattern ?? '',
+        washCare: ajioRaw.washCare ?? '',
+        sleeveLength: ajioRaw.sleeveLength ?? '',
+        length: ajioRaw.length ?? '',
+        setType: ajioRaw.setType ?? '',
+        bottomwearType: ajioRaw.bottomwearType ?? '',
+        styleType: ajioRaw.styleType ?? '',
+        lining: ajioRaw.lining ?? '',
+        liningFabric: ajioRaw.liningFabric ?? '',
+        accent: ajioRaw.accent ?? '',
+        productGroups: ajioRaw.productGroups ?? '',
+        mood: ajioRaw.mood ?? '',
+        fashionGroups: ajioRaw.fashionGroups ?? '',
+        seasonCode: ajioRaw.seasonCode ?? '',
+        character: ajioRaw.character ?? '',
+        multiSegment: ajioRaw.multiSegment ?? '',
+        multiVertical: ajioRaw.multiVertical ?? '',
+        productName: ajioRaw.productName ?? '',
+        productTitle: ajioRaw.productTitle ?? '',
+        componentCount: ajioRaw.componentCount ?? '',
+        packageContains: ajioRaw.packageContains ?? '',
+      }
+    : undefined;
+
   return {
+    ajio,
     articleType,
     prominentColour,
     secondProminentColour,

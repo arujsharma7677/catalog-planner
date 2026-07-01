@@ -13,7 +13,7 @@ import {
   RawAnalysis
 } from '@/lib/types';
 import { AutoFillForm } from '@/components/AutoFillForm';
-import { downloadMyntraExcel } from '@/lib/excel-export';
+import { downloadExcelForPlatforms, ExportPlatform } from '@/lib/excel-export';
 import { useAuth } from '@/lib/auth-context';
 import { analyseProduct } from '@/services/analyzeService';
 import { compressFile } from '@/lib/image-compress';
@@ -41,7 +41,7 @@ const PLATFORM_OPTIONS: { value: string; label: string }[] = [
   { value: 'myntra', label: 'Myntra' },
   // { value: 'amazon', label: 'Amazon' },
   // { value: 'flipkart', label: 'Flipkart' },
-  // { value: 'ajio', label: 'Ajio' },
+  { value: 'ajio', label: 'Ajio' },
 ];
 
 const EMPTY_IMAGES: ImageSet = {
@@ -153,15 +153,24 @@ export default function AutoFillPage() {
 
       const response = await analyseProduct('Item', imageFiles, platforms, additionalRequirements);
 
-      // Convert flat response to RawAnalysis shape
+      // The backend nests Ajio fields under an "ajio" key (plain strings);
+      // pull it out so the flat Myntra fields can be wrapped into RawAnalysis
+      // without stringifying the nested object into "[object Object]".
+      const { ajio: ajioRaw, ...myntraFlat } = response.analysis as Record<string, unknown>;
+
       const rawAnalysis: RawAnalysis = Object.fromEntries(
-        Object.entries(response.analysis).map(([k, v]) => [
+        Object.entries(myntraFlat).map(([k, v]) => [
           k,
           { value: String(v ?? ''), confidence: 'medium' as ConfidenceLevel, reasoning: '' },
         ])
       );
 
-      const formData = buildSKUFormData(rawAnalysis, profile, imagePreviews);
+      const formData = buildSKUFormData(
+        rawAnalysis,
+        profile,
+        imagePreviews,
+        (ajioRaw as Record<string, string> | undefined),
+      );
 
       const newItem: BatchItem = {
         id: crypto.randomUUID(),
@@ -309,6 +318,8 @@ export default function AutoFillPage() {
                 item={currentItem}
                 onUpdate={handleUpdateCurrent}
                 onAddToBatch={addToBatch}
+                platforms={platforms as ExportPlatform[]}
+                onError={setError}
               />
             </div>
           )}
@@ -354,7 +365,7 @@ export default function AutoFillPage() {
               {batch.length > 0 && (
                 <div className="p-4 border-t border-myntra-border bg-gray-50">
                   <button
-                    onClick={() => { void downloadMyntraExcel(batch.map(b => b.formData), `batch_export_${Date.now()}.xlsx`).catch(console.error); }}
+                    onClick={() => { void downloadExcelForPlatforms(batch.map(b => b.formData), platforms as ExportPlatform[]).catch((e) => { console.error(e); setError(e?.message || 'Export failed'); }); }}
                     className="w-full btn-primary py-3 font-bold"
                   >
                     Download Master Excel

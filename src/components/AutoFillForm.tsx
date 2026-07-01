@@ -7,12 +7,14 @@ import {
   VALID_SEASONS, VALID_COUNTRIES, VALID_STANDARD_SIZES, VALID_YEARS,
   VALID_YES_NO, VALID_SUSTAINABLE,
 } from '@/lib/vision-prompt';
-import { downloadMyntraExcel } from '@/lib/excel-export';
+import { downloadExcelForPlatforms, ExportPlatform } from '@/lib/excel-export';
 
 interface Props {
   item: BatchItem;
   onUpdate: (formData: SKUFormData) => void;
   onAddToBatch: () => void;
+  platforms: ExportPlatform[];
+  onError?: (message: string) => void;
 }
 
 const CONFIDENCE_STYLES: Record<ConfidenceLevel, { bg: string; border: string; label: string; icon: string }> = {
@@ -31,7 +33,7 @@ function getInitials(name: string): string {
 
 type SectionKey = 'vision' | 'design' | 'profile' | 'manual' | 'images';
 
-export function AutoFillForm({ item, onUpdate, onAddToBatch }: Props) {
+export function AutoFillForm({ item, onUpdate, onAddToBatch, platforms, onError }: Props) {
   const { formData } = item;
   const [expandedSection, setExpandedSection] = useState<SectionKey>('vision');
   const [showAllReasoning, setShowAllReasoning] = useState(false);
@@ -96,7 +98,7 @@ export function AutoFillForm({ item, onUpdate, onAddToBatch }: Props) {
         </div>
         <div className="flex flex-col gap-2">
           <button
-            onClick={() => { void downloadMyntraExcel([formData], `sku_${formData.articleType || 'product'}.xlsx`).catch(console.error); }}
+            onClick={() => { void downloadExcelForPlatforms([formData], platforms).catch((e) => { console.error(e); onError?.(e?.message || 'Export failed'); }); }}
             disabled={!canSubmit}
             className={`btn-primary whitespace-nowrap ${!canSubmit ? 'opacity-50 cursor-not-allowed' : ''}`}
           >

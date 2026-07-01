@@ -281,7 +281,61 @@ export interface SKUFormData {
   // Metadata
   fieldConfidence: Record<string, ConfidenceLevel>;
   fieldReasoning: Record<string, string>;
+
+  // Ajio: 27 image-derived attributes, present only when the "ajio" platform
+  // was selected during analysis. Optional so myntra-only analyses still
+  // type-check; the Ajio export throws a clear error if it's missing.
+  ajio?: AjioFields;
 }
+
+// ── Ajio Types ──
+
+/**
+ * The 27 image-derived Ajio fields, returned nested under an "ajio" key from
+ * /analyse when the ajio platform is selected. Shared/manual fields (brand,
+ * mrp, hsn, styleId, sizes, countryOfOrigin, addresses, etc.) live on
+ * SKUFormData and are reused for both platforms — they are NOT duplicated here.
+ */
+export interface AjioFields {
+  colorFamily: string;
+  colorShade: string;
+  secondaryColor: string;
+  fabricType: string;
+  bottomwearFabric: string;
+  fabricDetail: string;
+  pattern: string;
+  washCare: string;
+  sleeveLength: string;
+  length: string;
+  setType: string;
+  bottomwearType: string;
+  styleType: string;
+  lining: string;
+  liningFabric: string;
+  accent: string;
+  productGroups: string;
+  mood: string;
+  fashionGroups: string;
+  seasonCode: string;
+  character: string;
+  multiSegment: string;
+  multiVertical: string;
+  productName: string;
+  productTitle: string;
+  componentCount: string;
+  packageContains: string;
+}
+
+/** Empty AjioFields, handy for initialising form state. */
+export const EMPTY_AJIO_FIELDS: AjioFields = {
+  colorFamily: '', colorShade: '', secondaryColor: '', fabricType: '',
+  bottomwearFabric: '', fabricDetail: '', pattern: '', washCare: '',
+  sleeveLength: '', length: '', setType: '', bottomwearType: '', styleType: '',
+  lining: '', liningFabric: '', accent: '', productGroups: '', mood: '',
+  fashionGroups: '', seasonCode: '', character: '', multiSegment: '',
+  multiVertical: '', productName: '', productTitle: '', componentCount: '',
+  packageContains: '',
+};
 
 export interface BatchItem {
   id: string;

@@ -1,4 +1,13 @@
-// All values sourced directly from the Myntra SKU Template masterdata sheet
+// All Myntra values sourced directly from the Myntra SKU Template masterdata sheet.
+// All Ajio values sourced directly from the Ajio Styles template for
+// Women -> Ethnic Wear -> Kurta Suit Sets (ajio.xlsx / sheetForStoringExtraValues).
+//
+// NOTE: the actual Claude prompt sent to the API now lives server-side in
+// app/services/vision_prompts.py (Python), and is built per-request based on
+// the selected platforms. The constants in this file are for the frontend —
+// populating dropdown <select> options in AutoFillForm / a future
+// AjioFillForm — and should be kept in sync with vision_prompts.py by hand
+// whenever a list changes.
 
 export const VALID_COLORS = [
   'Assorted', 'Beige', 'Black', 'Blue', 'Bronze', 'Brown', 'Burgundy',
@@ -186,8 +195,133 @@ export const GARMENT_COMPONENT_NAMES: Record<string, string[]> = {
   'Jackets': ['Jacket'],
 };
 
+// ═════════════════════════════════════════════
+// AJIO CONTROLLED VOCABULARY LISTS
+// Sourced from ajio.xlsx (Women -> Ethnic Wear -> Kurta Suit Sets template).
+// Column letters refer to that template's "Styles" sheet.
+// ═════════════════════════════════════════════
+
+// col AU / BB — *Color Family / Secondary Color.
+// NOTE: this is a DIFFERENT list to VALID_COLORS above (e.g. "Navy" not
+// "Navy Blue", "Coffee" not "Coffee Brown") — do not reuse VALID_COLORS here.
+export const VALID_AJIO_COLORS = [
+  'Aqua', 'Beige', 'Black', 'Blue', 'Bronze', 'Brown', 'Copper', 'Cream',
+  'Gold', 'Green', 'Grey', 'Khaki', 'Magenta', 'Maroon', 'Metallic', 'Multi',
+  'Mustard', 'Navy', 'Nude', 'Olive', 'Orange', 'Peach', 'Pink', 'Purple',
+  'Red', 'Rust', 'Silver', 'Tan', 'Teal', 'White', 'Yellow', 'Clear',
+  'Rose Gold', 'Fuchsia', 'Charcoal', 'Coffee', 'Grey Melange', 'Lime',
+  'Off White', 'Turquoise', 'Coral', 'Burgundy', 'Indigo', 'Ecru',
+  'Lavender', 'Violet', 'Wine', 'Mauve', 'Sea Green', 'Taupe',
+];
+
+export const VALID_AJIO_COLOR_SHADES = ['Light', 'Bright', 'Dark'];
+
+// col AY — *Fabric Type (fibre name)
+export const VALID_AJIO_FABRIC_TYPES = [
+  'Acrylic', 'Art Silk', 'Banarasi', 'Cambric', 'Chanderi', 'Chiffon',
+  'Corduroy', 'Cotton', 'Crepe', 'Denim', 'Dobby', 'Dupion', 'Fleece',
+  'Georgette', 'Ikat', 'Jacquard', 'Kanjeevaram', 'Leather', 'Linen',
+  'Modal', 'Muslin', 'Mysore Silk', 'Net', 'Nylon', 'Organza', 'Paithani',
+  'Pashmina', 'Polyester', 'PU', 'Raw Silk', 'Rayon', 'Satin', 'Silk',
+  'Synthetic', 'Tanchoi', 'Tussar', 'Velvet', 'Viscose', 'Wool', 'Khadi',
+  'Lace', 'Brocade',
+];
+
+// col AZ — *Pattern
+export const VALID_AJIO_PATTERNS = [
+  'Camouflage', 'Checks', 'Colour-block', 'Embellished', 'Floral', 'Lace',
+  'Ombre-dyed', 'Polka-dot', 'Solid', 'Stripes', 'Textured', 'Tie & Dye',
+  'Typographic', 'Applique', 'Self-design', 'Abstract', 'Animal', 'Aztec',
+  'Block Print', 'Geometric', 'Ikat', 'Paisley', 'Embroidery',
+  'Embellished & Embroidery', 'Patch-work',
+];
+
+// col BE — *Wash Care (note the casing differs from Myntra)
+export const VALID_AJIO_WASH_CARES = [
+  'Machine wash', 'Dry clean', 'Hand wash', 'Machine wash cold',
+  'Machine wash warm', 'Hand wash cold', 'Hand wash warm',
+  'Hand wash separately', 'Hand wash cold separately',
+];
+
+// col BV — *Sleeve Length
+export const VALID_AJIO_SLEEVE_LENGTHS = [
+  '3/4th sleeve', 'Asymmetrical sleeve', 'Cap sleeve', 'Elbow-length sleeve',
+  'Full-length sleeve', 'Short sleeve', 'Sleeveless',
+];
+
+// col BR — *Length
+export const VALID_AJIO_LENGTHS = [
+  'Hip', 'Mid-thigh', 'Knee length', 'Calf', 'Ankle length', 'Floor',
+];
+
+// col BU — *Set Type
+export const VALID_AJIO_SET_TYPES = [
+  'Kurta, Bottomwear & Dupatta', 'Kurta & Bottomwear', 'Kurta & Dupatta',
+  'Bottom & Dupatta', 'NA',
+];
+
+// col BN — *Bottomwear Type
+export const VALID_AJIO_BOTTOMWEAR_TYPES = [
+  'Churidar', 'Salwar', 'Patiala', 'Palazzo', 'Sharara', 'Dhoti Pant',
+  'Harem Pants', 'Jodhpuri', 'Pants', 'Skirts', 'NA',
+];
+
+// col BX — *Style Type
+export const VALID_AJIO_STYLE_TYPES = ['Anarkali', 'A-line', 'Straight', 'Flared', 'Angrakha'];
+
+// col BY — Lining
+export const VALID_AJIO_LININGS = ['Full lining', 'With Slip', 'No lining', 'Partial lining'];
+
+// col BZ — Lining Fabric
+export const VALID_AJIO_LINING_FABRICS = [
+  'Polyester', 'Poly Knit', 'Voile', 'Mesh', 'Cambric', 'Cotton', 'Viscose',
+  'Acetate', 'Cupro', 'Silk', 'Wool', 'NA',
+];
+
+// col BF — Accent (embellishment/craft technique)
+export const VALID_AJIO_ACCENTS = [
+  'Applique', 'Bead-work', 'Crochet', 'Cut-work', 'Embellishments',
+  'Embroidery', 'Mirror', 'Patch-work', 'Ruffles', 'Sequins', 'Stones',
+  'Stylised', 'Tassels', 'Zari', 'NA',
+];
+
+// col I — *Product Groups (occasion/usage vibe, not the taxonomy category)
+export const VALID_AJIO_PRODUCT_GROUPS = ['Casual', 'Evening', 'Occasion', 'Work', 'Active', 'Universal'];
+
+// col AK — Mood
+export const VALID_AJIO_MOODS = [
+  'Bohemian', 'Bold', 'Casual', 'Classic', 'Cosmopolitan', 'Dapper',
+  'Dramatic', 'Home', 'Party', 'Playful', 'Preppy', 'Smart Casual',
+  'Sporty', 'Travel', 'Vintage', 'Varsity', 'Minimalist', 'Y2K',
+];
+
+// col J — *Fashion Groups
+export const VALID_AJIO_FASHION_GROUPS = ['Fashion', 'Core'];
+
+// col K — *Season Code
+export const VALID_AJIO_SEASONS = ['Summer', 'Spring', 'Winter', 'Fall', 'Core'];
+
+// col AN — Multi Segment (audience)
+export const VALID_AJIO_MULTI_SEGMENTS = ['Women', 'Men', 'Girls', 'Boys', 'Infants'];
+
+// col AO — Multi Vertical
+export const VALID_AJIO_MULTI_VERTICALS = [
+  'Ethnic Wear', 'Western Wear', 'Fusion Wear', 'Night & Lounge Wear', 'Lingerie & Innerwear',
+];
+
+// col BS — Product Name (kurta-set-style templates only)
+export const VALID_AJIO_PRODUCT_NAMES = [
+  'Kurta Set', 'Anarkali Kurta Set', 'A-line Kurta Set', 'Straight Kurta Set',
+  'Flared Kurta Set', 'Angrakha Kurta Set', 'NA',
+];
+
 // ─────────────────────────────────────────────
-// PROMPT BUILDER
+// PROMPT BUILDER (legacy / reference only)
+// The live prompt sent to Claude now lives in the Python backend at
+// app/services/vision_prompts.py, and is built per-request based on the
+// selected platforms (myntra, ajio, or both) so token spend scales with
+// what's actually requested. This function is kept for reference and any
+// remaining callers that only ever need the Myntra-only prompt.
 // ─────────────────────────────────────────────
 
 export function buildVisionPrompt(): string {
